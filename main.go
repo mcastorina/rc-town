@@ -17,6 +17,9 @@ var (
 
 type model struct {
 	cursor int
+	// color grid
+	// TODO: more data than just color
+	grid [][]string
 }
 
 func (m *model) Init() tea.Cmd {
@@ -41,48 +44,17 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *model) View() string {
-	var style = lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color(black)).
-		Background(lipgloss.Color(white)).
-		Width(28).
-		Height(17)
-	var blackBorder = lipgloss.NewStyle().
-		Background(lipgloss.Color(black)).
-		Width(24).
-		Height(10).
-		MarginTop(1).
-		MarginLeft(2)
-	var screen = lipgloss.NewStyle().
-		Background(lipgloss.Color(white)).
-		Width(20).
-		Height(8).
-		MarginTop(1).
-		MarginLeft(2)
-	var blackScreen = lipgloss.NewStyle().
-		Background(lipgloss.Color(black)).
-		Width(16).
-		Height(6).
-		MarginTop(1).
-		MarginLeft(2)
-	var greenBit = lipgloss.NewStyle().
-		Background(lipgloss.Color(green)).
-		Width(2).
-		Height(1).
-		MarginTop(1).
-		MarginLeft(0).Render("")
-	// var blackBit = lipgloss.NewStyle().
-	// 	Background(lipgloss.Color(green)).
-	// 	Width(2).
-	// 	Height(1).
-	// 	MarginTop(1).
-	// 	MarginLeft(0).Render("")
+	var image string
 
-	greenBits := lipgloss.JoinHorizontal(lipgloss.Top, greenBit, "  ", greenBit, "  ", greenBit)
-	otherGreenBits := lipgloss.JoinHorizontal(lipgloss.Top, "  ", greenBit, greenBit, "  ", greenBit, greenBit)
-	greenBits = lipgloss.JoinVertical(lipgloss.Top, greenBits, otherGreenBits)
+	for _, row := range m.grid {
+		for _, color := range row {
+			style := lipgloss.NewStyle().Background(lipgloss.Color(color)).Width(2).Height(1)
+			image += style.Render("")
+		}
+		image += "\n"
+	}
 
-	return style.Render(blackBorder.Render(screen.Render(blackScreen.Render(greenBits))))
+	return image
 }
 
 func main() {
@@ -91,7 +63,28 @@ func main() {
 }
 
 func runCli() {
-	model := &model{}
+	model := &model{
+		grid: [][]string{
+			{white, white, white, white, white, white, white, white, white, white, white, white, white, white},
+			{white, black, black, black, black, black, black, black, black, black, black, black, black, white},
+			{white, black, white, white, white, white, white, white, white, white, white, white, black, white},
+			{white, black, white, black, black, black, black, black, black, black, black, white, black, white},
+			{white, black, white, green, black, green, black, green, black, black, black, white, black, white},
+			{white, black, white, black, black, black, black, black, black, black, black, white, black, white},
+			{white, black, white, black, green, green, black, green, green, black, black, white, black, white},
+			{white, black, white, black, black, black, black, black, black, black, black, white, black, white},
+			{white, black, white, black, black, black, black, black, black, black, black, white, black, white},
+			{white, black, white, white, white, white, white, white, white, white, white, white, black, white},
+			{white, black, black, black, black, black, black, black, black, black, black, black, black, white},
+			{white, white, white, white, white, black, black, black, black, white, white, white, white, white},
+			{white, white, black, black, black, black, black, black, black, black, black, black, white, white},
+			{white, black, black, black, white, black, white, black, white, black, white, black, black, white},
+			{white, black, black, white, black, white, black, white, black, white, black, black, black, white},
+			{white, black, black, black, black, black, black, black, black, black, black, black, black, white},
+			{white, white, white, white, white, white, white, white, white, white, white, white, white, white},
+		},
+	}
+
 	program := tea.NewProgram(model, teaOptions...)
 
 	exitCode := 0
