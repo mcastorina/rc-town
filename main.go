@@ -9,20 +9,35 @@ type Player struct {
 	*tl.Entity
 	prevX int
 	prevY int
+	level *tl.BaseLevel
 }
 
 // Tick ...
 func (player *Player) Tick(event tl.Event) {
-	if event.Type == tl.EventKey { // Is it a keyboard event?
+	if event.Type == tl.EventKey {
 		player.prevX, player.prevY = player.Position()
-		switch event.Key { // If so, switch on the pressed key.
-		case tl.KeyArrowRight:
+		if event.Ch == 0 {
+			switch event.Key {
+			case tl.KeyArrowRight:
+				player.SetPosition(player.prevX+1, player.prevY)
+			case tl.KeyArrowLeft:
+				player.SetPosition(player.prevX-1, player.prevY)
+			case tl.KeyArrowUp:
+				player.SetPosition(player.prevX, player.prevY-1)
+			case tl.KeyArrowDown:
+				player.SetPosition(player.prevX, player.prevY+1)
+			}
+			return
+		}
+
+		switch event.Ch {
+		case 'l':
 			player.SetPosition(player.prevX+1, player.prevY)
-		case tl.KeyArrowLeft:
+		case 'h':
 			player.SetPosition(player.prevX-1, player.prevY)
-		case tl.KeyArrowUp:
+		case 'k':
 			player.SetPosition(player.prevX, player.prevY-1)
-		case tl.KeyArrowDown:
+		case 'j':
 			player.SetPosition(player.prevX, player.prevY+1)
 		}
 	}
@@ -34,6 +49,26 @@ func (player *Player) Collide(collision tl.Physical) {
 	if _, ok := collision.(*tl.Rectangle); ok {
 		player.SetPosition(player.prevX, player.prevY)
 	}
+}
+
+// Draw ...
+func (player *Player) Draw(screen *tl.Screen) {
+	screenWidth, screenHeight := screen.Size()
+	xOffset, yOffset := player.level.Offset()
+	x, y := player.Position()
+
+	if yOffset+y < 2 {
+		player.level.SetOffset(xOffset, yOffset+screenHeight/4)
+	} else if yOffset+y > screenHeight-2 {
+		player.level.SetOffset(xOffset, yOffset-screenHeight/4)
+	}
+	if xOffset+x < 2 {
+		player.level.SetOffset(xOffset+screenWidth/4, yOffset)
+	} else if xOffset+x > screenWidth-2 {
+		player.level.SetOffset(xOffset-screenWidth/4, yOffset)
+	}
+	// call Draw on the underlying entitiy
+	player.Entity.Draw(screen)
 }
 
 func main() {
@@ -50,6 +85,7 @@ func main() {
 		h     int
 		color tl.Attr
 	}
+	// draw the RC logo
 	for _, rect := range []rect{
 		{10, 10, 14, 17, tl.ColorWhite},
 		{11, 11, 12, 10, tl.ColorBlack},
@@ -81,7 +117,7 @@ func main() {
 			rect.color,
 		))
 	}
-	player := Player{tl.NewEntity(1, 1, 2, 1), 0, 0}
+	player := Player{tl.NewEntity(8, 8, 2, 1), 0, 0, level}
 	player.SetCell(0, 0, &tl.Cell{Fg: tl.ColorRed, Ch: '옷'})
 	level.AddEntity(&player)
 	g.Screen().SetLevel(level)
